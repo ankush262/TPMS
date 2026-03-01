@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # Backend API Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: tpms_backend
+    command: uvicorn backend.main:app --host 0.0.0.0 --port 8000 --reload
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - /app/__pycache__
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - db
+    networks:
+      - tpms_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: tpms_postgres
+    environment:
+      POSTGRES_USER: tpms_user
+      POSTGRES_PASSWORD: tpms_password
+      POSTGRES_DB: tpms_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tpms_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tpms_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Frontend Service (Node.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tpms_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://backend:8000
+      - NODE_ENV=development
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - tpms_network
+
+  # Analytics/Jupyter Notebook Service (Optional)
+  analytics:
+    build:
+      context: .
+      dockerfile: Dockerfile.analytics
+    container_name: tpms_analytics
+    command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - tpms_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  tpms_network:
+    driver: bridge

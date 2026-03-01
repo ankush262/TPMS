@@ -1,0 +1,30 @@
+# Core Data
+pandas
+numpy
+
+# Visualization
+matplotlib
+seaborn
+
+# Notebook Environment
+jupyterlab
+ipykernel
+
+# Machine Learning
+scikit-learn
+lightgbm
+
+# Model Saving
+joblib
+
+# File Formats
+pyarrow
+
+# Statistical tools
+scipy
+
+# Optional (better visuals)
+plotly
+
+# Testing
+pytest

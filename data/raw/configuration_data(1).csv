@@ -1,0 +1,5 @@
+vehicle_id,vehicle_type,axle_configuration,axle_count,wheel_count,gvwr_kg,curb_weight,tire_brand,model,size,ply_rating,max_pressure_psi,idel_temp,max_load_single_kg,section_width_mm,overall_diameter_mm,initial_tread,tyre_life
+MH14JK7645,TRUCK,4x2,2,6,16200,7500,MRF,SUPERLUG,11.00-22,16,118.5,60,3525 kg ,3090mm,1160 mm,21.5,120000 km
+RJ21LM7621,Semi-Trailer,6x4,3,10,25000,8500,Michelin,X Line Energy,295/80R22.5,16,120,65,3550 kg,298 mm,1044 mm,18.5,165000 km
+MH47MD4509,Box Van,4x2,2,4,7500,3200,Bridgestone,Duravis R660,225/75R16C,10,65,50,1450 kg,225 mm,744 mm,9,65000 km
+MH12XD7689,Pickup,6x2,2,8,3500,2100,Goodyear,Wrangler AT,265/70R17,8,50,55,1120 kg,265 mm,804 mm,12.2,55000 km
