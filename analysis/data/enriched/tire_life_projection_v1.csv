@@ -1,0 +1,5 @@
+vehicle_id,tyre_life,stress_score,effective_life_km,remaining_life_pct,life_reduction_pct,life_health,life_recommendation,run_timestamp,model_version
+MH47MD4509,65000,0.6931034482758621,19948.28,30.69,69.31,Critical,Immediate inspection and consider replacement,2026-03-01T20:28:37.907574+00:00,v0.1-life
+RJ21LM7621,165000,0.7530516431924883,40746.48,24.69,75.31,Critical,Immediate inspection and consider replacement,2026-03-01T20:28:37.907574+00:00,v0.1-life
+MH14JK7645,120000,0.5936170212765958,48765.96,40.64,59.36,Watch,Schedule inspection within next service,2026-03-01T20:28:37.907574+00:00,v0.1-life
+MH12XD7689,55000,0.2333333333333333,42166.67,76.67,23.33,Healthy,Normal monitoring,2026-03-01T20:28:37.907574+00:00,v0.1-life
