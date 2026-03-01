@@ -1,9 +1,20 @@
-"""Pydantic schemas for the API."""
+"""Pydantic response models for the TPMS API."""
 
 from pydantic import BaseModel
 
 
-class SensorData(BaseModel):
-    pressure: float
-    temperature: float
-    timestamp: str
+class HealthFile(BaseModel):
+    """Status of a single served file."""
+    name: str
+    exists: bool
+
+
+class HealthResponse(BaseModel):
+    """GET /health response."""
+    status: str
+    files: list[HealthFile]
+
+
+class ErrorResponse(BaseModel):
+    """Standard error body."""
+    detail: str

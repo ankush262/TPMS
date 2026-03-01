@@ -1,0 +1,46 @@
+{
+  "model_version": "v0.1-stress",
+  "run_timestamp": "2026-03-01T20:06:31.187025+00:00",
+  "formula": "stress_score = 0.8*load_utilization + 0.2*driven_ratio",
+  "weights": {
+    "WEIGHT_LOAD": 0.8,
+    "WEIGHT_DRIVEN": 0.2
+  },
+  "thresholds": {
+    "THRESH_LOW": 0.4,
+    "THRESH_HIGH": 0.7
+  },
+  "adjusted_score": {
+    "formula": "stress_score_adj = 0.7*stress_score + 0.2*wear_norm - 0.1*structural_norm",
+    "ALPHA": 0.7,
+    "BETA": 0.2,
+    "GAMMA": 0.1
+  },
+  "priority_formula": "maintenance_priority = stress_score / (load_margin_kg + 1.0)",
+  "input_file": "E:\\TPMS\\data\\processed\\cleaned_configuration_data.csv",
+  "columns_used": [
+    "vehicle_id",
+    "vehicle_type",
+    "load_per_wheel",
+    "max_load_single_kg",
+    "load_utilization",
+    "load_margin_kg",
+    "driven_wheels",
+    "total_wheels",
+    "driven_ratio",
+    "initial_tread",
+    "tyre_life",
+    "structural_index",
+    "adjusted_wear_rate",
+    "stress_score",
+    "stress_score_adj",
+    "risk_level",
+    "recommended_action",
+    "maintenance_priority",
+    "priority_rank",
+    "explanation",
+    "run_timestamp",
+    "model_version"
+  ],
+  "n_vehicles": 4
+}

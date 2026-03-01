@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TPMS — Tire Intelligence Dashboard</title>
+  <meta name="description" content="TPMS Enterprise Tire Intelligence Dashboard — real-time risk monitoring and maintenance prioritization">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:        #0f1117;
+      --surface:   #1a1d26;
+      --card:      #22252f;
+      --border:    #2d313c;
+      --text:      #e1e4ea;
+      --text-dim:  #8b8fa3;
+      --accent:    #6c5ce7;
+      --green:     #00cec9;
+      --orange:    #fdcb6e;
+      --red:       #ff7675;
+      --blue:      #74b9ff;
+      --radius:    12px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    /* ── Header ─────────────────────────────────────── */
+    .header {
+      background: linear-gradient(135deg, #1a1d26 0%, #252836 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .header h1 {
+      font-size: 22px; font-weight: 700;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--blue) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .header .meta { font-size: 13px; color: var(--text-dim); }
+    /* ── Banner ─────────────────────────────────────── */
+    .banner {
+      display: flex; gap: 16px; padding: 20px 32px; flex-wrap: wrap;
+    }
+    .badge {
+      padding: 10px 20px; border-radius: 8px; font-weight: 600;
+      font-size: 14px; letter-spacing: 0.3px; min-width: 120px;
+      text-align: center; border: 1px solid var(--border);
+      background: var(--surface);
+      transition: transform .15s ease;
+    }
+    .badge:hover { transform: translateY(-2px); }
+    .badge.high   { border-color: var(--red);    color: var(--red); }
+    .badge.mod    { border-color: var(--orange); color: var(--orange); }
+    .badge.low    { border-color: var(--green);  color: var(--green); }
+    .badge.total  { border-color: var(--blue);   color: var(--blue); }
+    /* ── Grid ──────────────────────────────────────── */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      padding: 0 32px 32px;
+    }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      position: relative;
+      transition: border-color .2s;
+    }
+    .card:hover { border-color: var(--accent); }
+    .card h2 {
+      font-size: 15px; font-weight: 600;
+      margin-bottom: 16px; color: var(--text-dim);
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .card canvas { width: 100% !important; max-height: 340px; }
+    .card.full { grid-column: 1 / -1; }
+    /* ── Table ─────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%; border-collapse: collapse; font-size: 13px;
+    }
+    th, td {
+      text-align: left; padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      color: var(--text-dim); font-weight: 600;
+      text-transform: uppercase; font-size: 11px; letter-spacing: 0.8px;
+      background: var(--surface);
+      position: sticky; top: 0;
+    }
+    tr:hover td { background: rgba(108, 92, 231, .06); }
+    .pill {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-weight: 600; font-size: 11px;
+    }
+    .pill.High     { background: rgba(255,118,117,.15); color: var(--red); }
+    .pill.Moderate { background: rgba(253,203,110,.15); color: var(--orange); }
+    .pill.Low      { background: rgba(0,206,201,.15);   color: var(--green); }
+    /* ── Loader / error ────────────────────────────── */
+    .loading {
+      text-align: center; padding: 60px; color: var(--text-dim);
+      font-size: 15px;
+    }
+    .error-msg {
+      background: rgba(255,118,117,.12);
+      border: 1px solid var(--red);
+      color: var(--red);
+      padding: 16px 24px; border-radius: var(--radius);
+      margin: 20px 32px; font-size: 14px;
+    }
+    /* ── Animate in ─────────────────────────────────── */
+    .fade-in {
+      animation: fadeIn .5s ease both;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <h1>🔧 TPMS — Tire Intelligence Dashboard</h1>
+  <div class="meta" id="metaInfo">Connecting to backend…</div>
+</header>
+
+<div id="errorBox"></div>
+
+<section class="banner" id="bannerSection">
+  <div class="badge total" id="badgeTotal">—</div>
+  <div class="badge high"  id="badgeHigh">—</div>
+  <div class="badge mod"   id="badgeMod">—</div>
+  <div class="badge low"   id="badgeLow">—</div>
+</section>
+
+<section class="grid" id="mainGrid">
+  <!-- Stress score chart -->
+  <div class="card fade-in">
+    <h2>Stress Score by Vehicle</h2>
+    <canvas id="stressChart"></canvas>
+  </div>
+  <!-- Tyre life chart -->
+  <div class="card fade-in">
+    <h2>Tyre Life (km)</h2>
+    <canvas id="lifeChart"></canvas>
+  </div>
+  <!-- Maintenance report table -->
+  <div class="card full fade-in">
+    <h2>Maintenance Report</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Vehicle</th><th>Type</th><th>Risk</th>
+            <th>Stress</th><th>Load Util.</th><th>Margin (kg)</th>
+            <th>Action</th><th>Explanation</th>
+          </tr>
+        </thead>
+        <tbody id="reportBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>
+const API = 'http://localhost:8000';
+
+const RISK_COLORS = {
+  High:     { bg: 'rgba(255,118,117,.7)', border: '#ff7675' },
+  Moderate: { bg: 'rgba(253,203,110,.7)', border: '#fdcb6e' },
+  Low:      { bg: 'rgba(0,206,201,.7)',   border: '#00cec9' },
+};
+
+async function fetchJSON(path) {
+  const res = await fetch(`${API}${path}`);
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+function showError(msg) {
+  document.getElementById('errorBox').innerHTML =
+    `<div class="error-msg">⚠ ${msg}</div>`;
+}
+
+// ── Summary banner ──────────────────────────────────
+function renderBanner(data) {
+  const counts = { High: 0, Moderate: 0, Low: 0 };
+  data.forEach(r => { if (counts[r.risk_level] !== undefined) counts[r.risk_level]++; });
+  document.getElementById('badgeTotal').textContent = `${data.length} Vehicles`;
+  document.getElementById('badgeHigh').textContent  = `${counts.High} High Risk`;
+  document.getElementById('badgeMod').textContent   = `${counts.Moderate} Moderate`;
+  document.getElementById('badgeLow').textContent   = `${counts.Low} Low Risk`;
+}
+
+// ── Stress-score bar chart ──────────────────────────
+function renderStressChart(data) {
+  const sorted = [...data].sort((a, b) => b.stress_score - a.stress_score);
+  const ctx = document.getElementById('stressChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(r => r.vehicle_id),
+      datasets: [{
+        label: 'Stress Score',
+        data: sorted.map(r => r.stress_score),
+        backgroundColor: sorted.map(r => (RISK_COLORS[r.risk_level]||RISK_COLORS.Low).bg),
+        borderColor: sorted.map(r => (RISK_COLORS[r.risk_level]||RISK_COLORS.Low).border),
+        borderWidth: 1.5,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            afterLabel: (ctx) => `Risk: ${sorted[ctx.dataIndex].risk_level}`
+          }
+        }
+      },
+      scales: {
+        x: { min: 0, max: 1, grid: { color: '#2d313c' }, ticks: { color: '#8b8fa3' } },
+        y: { grid: { display: false }, ticks: { color: '#e1e4ea', font: { size: 12 } } },
+      }
+    }
+  });
+}
+
+// ── Tyre-life bar chart ─────────────────────────────
+function renderLifeChart(data) {
+  const sorted = [...data].sort((a, b) => a.tyre_life - b.tyre_life);
+  const ctx = document.getElementById('lifeChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(r => r.vehicle_id),
+      datasets: [{
+        label: 'Tyre Life (km)',
+        data: sorted.map(r => r.tyre_life),
+        backgroundColor: 'rgba(116,185,255,.65)',
+        borderColor: '#74b9ff',
+        borderWidth: 1.5,
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#2d313c' }, ticks: { color: '#8b8fa3' } },
+        y: { grid: { display: false }, ticks: { color: '#e1e4ea', font: { size: 12 } } },
+      }
+    }
+  });
+}
+
+// ── Report table ────────────────────────────────────
+function renderTable(data) {
+  const sorted = [...data].sort((a, b) => a.priority_rank - b.priority_rank);
+  const tbody = document.getElementById('reportBody');
+  tbody.innerHTML = sorted.map(r => `
+    <tr>
+      <td>${r.priority_rank}</td>
+      <td><strong>${r.vehicle_id}</strong></td>
+      <td>${r.vehicle_type || '—'}</td>
+      <td><span class="pill ${r.risk_level}">${r.risk_level}</span></td>
+      <td>${Number(r.stress_score).toFixed(3)}</td>
+      <td>${r.load_utilization != null ? Number(r.load_utilization).toFixed(3) : '—'}</td>
+      <td>${r.load_margin_kg != null ? Number(r.load_margin_kg).toFixed(1) : '—'}</td>
+      <td>${r.recommended_action || '—'}</td>
+      <td style="max-width:340px;font-size:12px;color:var(--text-dim)">${r.explanation || '—'}</td>
+    </tr>`).join('');
+}
+
+// ── Boot ────────────────────────────────────────────
+(async () => {
+  try {
+    const [intelligence, modelInfo] = await Promise.all([
+      fetchJSON('/intelligence'),
+      fetchJSON('/model-info'),
+    ]);
+
+    // Meta
+    document.getElementById('metaInfo').textContent =
+      `Model ${modelInfo.model_version || '?'}  •  ${intelligence.length} vehicles  •  ` +
+      `Last run: ${(intelligence[0]?.run_timestamp || '—').slice(0, 19).replace('T', ' ')}`;
+
+    renderBanner(intelligence);
+    renderStressChart(intelligence);
+    renderLifeChart(intelligence);
+    renderTable(intelligence);
+  } catch (e) {
+    showError(`Backend unreachable (${e.message}). Start the API with: <code>python -m uvicorn backend.main:app --reload --port 8000</code>`);
+  }
+})();
+</script>
+</body>
+</html>

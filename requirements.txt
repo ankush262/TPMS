@@ -26,5 +26,10 @@ scipy
 # Optional (better visuals)
 plotly
 
+# API Backend
+fastapi
+uvicorn[standard]
+
 # Testing
 pytest
+httpx
